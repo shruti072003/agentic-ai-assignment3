@@ -1,14 +1,47 @@
 {
-  "name": "open_pr",
-  "description": "Open a pull request.",
+  "name": "pulls_open_draft",
+  "description": "Open one draft pull request on Ledgerline's repository, proposing in prose the change to the file a triage names. It is a draft: it merges nothing, needs no commits, and can be closed. Open it before the triage comment, and never for an issue whose file is none. The branch must be exactly repomind/issue-<number>. Returns JSON {pr, issue, branch, status}: pr is its identifier, such as pr-3; status is opened, or already_open when this run already has an open pull request from that branch, in which case nothing new was opened (a retry is safe: the harness keys every write). The title is at most 120 characters and the body at most 4,000; an empty title or body is an error and opens nothing.",
   "input_schema": {
     "type": "object",
+    "additionalProperties": false,
+    "required": ["number", "branch", "title", "body"],
     "properties": {
-      "number": {"type": "integer", "description": "Issue number"},
-      "branch": {"type": "string", "description": "Branch"},
-      "title": {"type": "string", "description": "Title"},
-      "body": {"type": "string", "description": "Body"}
-    },
-    "required": ["number", "branch", "title", "body"]
+      "number": {
+        "type": "integer",
+        "description": "The number of the issue the pull request addresses: 4192 for issue-4192."
+      },
+      "branch": {
+        "type": "string",
+        "description": "Exactly repomind/issue-<number>, such as repomind/issue-4192. Any other branch is an error: one branch per issue is how a repeated request finds the pull request it already opened."
+      },
+      "title": {
+        "type": "string",
+        "description": "One line, at most 120 characters, saying what the change fixes or adds, such as: Cap the retry delay at maxDelayMs."
+      },
+      "body": {
+        "type": "string",
+        "description": "At most 4,000 characters of prose: the file to change, exactly as the triage names it, what is wrong there, and the change you propose. No code is needed."
+      }
+    }
+  },
+  "strict": true,
+  "examples": [
+    {"input": {"number": 4190, "branch": "repomind/issue-4190", "title": "Cap the retry delay at maxDelayMs",
+               "body": "File: src/util/retry.ts\n\nbackoffDelay doubles the delay on every attempt and never applies maxDelayMs. Proposed change: return the smaller of the doubled delay and maxDelayMs."},
+     "note": "Typical: the branch from the issue number, a one-line title, and a body that names the file and proposes the change."},
+    {"input": {"number": 4188, "branch": "repomind/issue-4188", "title": "Document the page size limit in the API guide",
+               "body": "File: docs/API.md\n\nThe guide never says that page sizes above 100 are clamped. Proposed change: add one sentence under Pagination."},
+     "note": "Hard: a docs triage still opens a pull request, against the document. Only a question, whose file is none, opens none."}
+  ],
+  "result_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["pr", "issue", "branch", "status"],
+    "properties": {
+      "pr": {"type": "string"},
+      "issue": {"type": "string"},
+      "branch": {"type": "string"},
+      "status": {"type": "string", "enum": ["opened", "already_open"]}
+    }
   }
 }

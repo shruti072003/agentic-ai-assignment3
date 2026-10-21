@@ -1,0 +1,52 @@
+{
+ "model": "gpt-4.1-mini",
+ "baseline_prompt_tokens": 19,
+ "before": {
+  "five": 195,
+  "alone": {
+   "read_issue": 41,
+   "search_repo": 75,
+   "read_file": 38,
+   "post_comment": 48,
+   "open_pr": 57
+  },
+  "list": 106,
+  "names": [
+   "read_issue",
+   "search_repo",
+   "read_file",
+   "post_comment",
+   "open_pr"
+  ]
+ },
+ "after": {
+  "five": 2551,
+  "alone": {
+   "issues_read": 302,
+   "code_search": 808,
+   "code_read_file": 510,
+   "issues_post_comment": 451,
+   "pulls_open_draft": 544
+  },
+  "list": 1707,
+  "names": [
+   "issues_read",
+   "code_search",
+   "code_read_file",
+   "issues_post_comment",
+   "pulls_open_draft"
+  ]
+ },
+ "calls": {
+  "model_calls": 17,
+  "prompt_tokens": 7784,
+  "output_tokens": 29,
+  "cache_read_tokens": 0,
+  "total_tokens": 7813,
+  "cost_usd": 0.00316,
+  "unpriced_calls": 0,
+  "models": [
+   "gpt-4.1-mini-2025-04-14"
+  ]
+ }
+}

@@ -1,12 +1,36 @@
 {
-  "name": "post_comment",
-  "description": "Post a comment on an issue.",
+  "name": "issues_post_comment",
+  "description": "Post one public comment on an issue in Ledgerline's issue tracker. Whoever filed the issue can read it, and a posted comment cannot be taken back, so post a triage exactly once, as the last step, after any pull request. The body's first two lines must be label: <bug | feature | question | docs> and file: <the exact repository path, or none>; anything after them is free text. The body is at most 4,000 characters. Returns JSON {comment, issue, status}: comment is its identifier, such as comment-17; status is posted for a new comment, or already_posted when this same comment was posted before, in which case nothing new was written (a retry is safe: the harness keys every write). An empty body, or one whose first two lines are not label and file, is an error and posts nothing.",
   "input_schema": {
     "type": "object",
+    "additionalProperties": false,
+    "required": ["number", "body"],
     "properties": {
-      "number": {"type": "integer", "description": "Issue number"},
-      "body": {"type": "string", "description": "Comment text"}
-    },
-    "required": ["number", "body"]
+      "number": {
+        "type": "integer",
+        "description": "The number of the issue to comment on, the one being triaged: 4192 for issue-4192. Commenting on any other issue writes where nobody asked."
+      },
+      "body": {
+        "type": "string",
+        "description": "The comment, at most 4,000 characters. Line 1: label: bug (something that should work does not), feature (new behaviour), question (how something works; nothing changes) or docs (the documentation is wrong or missing). Line 2: file: the one file most responsible, exactly as a search printed it, or none for a question. Then, optionally, one or two sentences of reasoning."
+      }
+    }
+  },
+  "strict": true,
+  "examples": [
+    {"input": {"number": 4190, "body": "label: bug\nfile: src/util/retry.ts\n\nbackoffDelay never caps the delay at maxDelayMs."},
+     "note": "Typical: a bug, the file the run read, one sentence of reasoning."},
+    {"input": {"number": 4189, "body": "label: question\nfile: none\n\nPagination is documented in docs/API.md; nothing needs to change."},
+     "note": "Hard: a question names no file on line 2, even when the reasoning mentions one."}
+  ],
+  "result_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["comment", "issue", "status"],
+    "properties": {
+      "comment": {"type": "string"},
+      "issue": {"type": "string"},
+      "status": {"type": "string", "enum": ["posted", "already_posted"]}
+    }
   }
 }

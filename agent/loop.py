@@ -66,5 +66,11 @@ def run_loop(client, tools, system: str, user_message: str, bounds: Bounds, trac
                 trace.end("tool_error", detail=f"{call.name}: {exc}")
                 return last_text
             trace.tool_call(step, call, result)
+            if getattr(result, "escalate", False):   # a write the registry could not confirm: a person decides
+                trace.end("escalated", detail=f"{call.name}: the write could not be confirmed")
+                return last_text
+            # A protocol error (an unknown tool, arguments that are not an object) comes back
+            # as the registry's generic is_error result, its detail in the harness log, so
+            # the call is still answered, as every model API requires, and the run goes on.
             results.append(tool_result(call, result.content, result.is_error))
         messages.append({"role": "user", "content": results})

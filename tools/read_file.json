@@ -1,11 +1,45 @@
 {
-  "name": "read_file",
-  "description": "Read a file.",
+  "name": "code_read_file",
+  "description": "Read one file of Ledgerline's private codebase by its exact path, as code_search prints it: relative to the repository root and case-sensitive, so src/Report.ts and src/report.tsx are different files. config/ is never readable. Returns JSON {path, total_lines, start_line, end_line, truncated, next_start_line, content}. Every response is capped: concise returns at most 150 lines, detailed at most 600, and either at most 20,000 characters; when truncated is true, call again with start_line set to next_start_line to read on. An empty file is a success with content \"\" and total_lines 0: there is nothing in it. A path that does not exist is an error that names the nearest paths that do; retry with one of them exactly, never the same path again.",
   "input_schema": {
     "type": "object",
+    "additionalProperties": false,
+    "required": ["path", "response_format", "start_line"],
     "properties": {
-      "path": {"type": "string", "description": "File path"}
-    },
-    "required": ["path"]
+      "path": {
+        "type": "string",
+        "description": "The file's path relative to the repository root, exactly as a code_search result printed it, case included: src/api/router.ts. No leading /, no .., no directories."
+      },
+      "response_format": {
+        "type": "string",
+        "enum": ["concise", "detailed"],
+        "description": "concise, the cheap default: at most 150 lines of the file as it is, enough for most source files here. detailed: at most 600 lines, each prefixed with its line number, about 10% more tokens per line; choose it to cite exact lines or to read a long file in one call."
+      },
+      "start_line": {
+        "type": ["integer", "null"],
+        "description": "null starts at line 1, the usual choice. A line number, from 1, starts there: the next_start_line of a truncated read, or a line a search hit named. Past the end of the file is an error that gives the file's length."
+      }
+    }
+  },
+  "strict": true,
+  "examples": [
+    {"input": {"path": "src/api/router.ts", "response_format": "concise", "start_line": null},
+     "note": "Typical: a path exactly as a search result printed it, from the top, concise."},
+    {"input": {"path": "src/components/ReportTable.tsx", "response_format": "detailed", "start_line": 20},
+     "note": "Hard: a .tsx file, not .ts; a search hit at line 28, so start a little before it, with line numbers to cite. A near-miss name (ReportTable.ts, reporttable.tsx) is an error naming this path."}
+  ],
+  "result_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["path", "total_lines", "start_line", "end_line", "truncated", "next_start_line", "content"],
+    "properties": {
+      "path": {"type": "string"},
+      "total_lines": {"type": "integer"},
+      "start_line": {"type": "integer"},
+      "end_line": {"type": "integer"},
+      "truncated": {"type": "boolean"},
+      "next_start_line": {"type": ["integer", "null"]},
+      "content": {"type": "string"}
+    }
   }
 }

@@ -1,14 +1,75 @@
 {
-  "name": "search_repo",
-  "description": "Search the code.",
+  "name": "code_search",
+  "description": "Search Ledgerline's private codebase (every text file except config/) for a literal, case-insensitive substring of one line. It matches the text of lines, never file names. Use it to find which files contain an identifier, an error message or a word from the issue, then read the likeliest file with code_read_file. Returns JSON {query, query_valid, path_glob, source, count, shown, truncated, index_age, results}, each result {path, line, text}, in path order. count is the total number of matching lines; at most max_results of them (a cap of 20) are shown, and truncated is true when more matched than were shown: then by_file lists, as {path, count}, the at most 10 files with the most matches; narrow the query or add a path_glob. Zero matches is a success, not an error: count 0, query_valid true, results empty. It means the text appears on no line: try a shorter identifier or another word, not the same query again. A malformed query (empty, longer than 200 characters, or a path_glob that is not a valid glob) is an error that says what to change. index_age says how old the index is: with source index, a file changed since then can be missing or stale.",
   "input_schema": {
     "type": "object",
+    "additionalProperties": false,
+    "required": ["query", "path_glob", "max_results", "response_format", "source"],
     "properties": {
-      "query": {"type": "string", "description": "Text to look for"},
-      "max_results": {"type": "integer", "description": "How many results. Default 10."},
-      "filter": {"type": "string", "description": "Optional filter expression"},
-      "deep": {"type": "boolean", "description": "Whether to do a deep search. Default false."}
-    },
-    "required": ["query"]
+      "query": {
+        "type": "string",
+        "description": "The literal text to find, 1 to 200 characters, matched case-insensitively within single lines. Shorter finds more: one identifier (backoffDelay) or one exact phrase of an error message works best. Several words match only where they appear together, in that order, on one line. Not a regular expression: no wildcards, operators or quotes."
+      },
+      "path_glob": {
+        "type": ["string", "null"],
+        "description": "null searches every file, the usual choice. A glob relative to the repository root, such as src/api/** or **/*.tsx, searches only the paths it matches: fewer, less noisy results when you already know the area. Only letters, digits, / . _ - and the wildcards * ? [ ] { }; no leading /, no .., no spaces."
+      },
+      "max_results": {
+        "type": "integer",
+        "description": "How many matching lines to show, 1 to 20; 10 is the usual choice. Each shown hit costs about 30 tokens in concise format. count reports every match whatever this is, so a small value still tells you how many there were."
+      },
+      "response_format": {
+        "type": "string",
+        "enum": ["concise", "detailed"],
+        "description": "concise, the cheap default: each hit's path, line number and at most 120 characters of the line. detailed: at most 240 characters of the line plus the line before and after it, about three times the tokens; choose it only when the surrounding lines decide which file to read."
+      },
+      "source": {
+        "type": "string",
+        "enum": ["index", "live"],
+        "description": "index, the default: the prebuilt index, fast; index_age says when it was built. live: reads every file from disk, slower and always current; choose it when index_age is old and the issue mentions a recent change, or when an index search found nothing for text you are sure is there."
+      }
+    }
+  },
+  "strict": true,
+  "examples": [
+    {"input": {"query": "backoffDelay", "path_glob": null, "max_results": 10, "response_format": "concise", "source": "index"},
+     "note": "Typical: one identifier, every file, ten hits, concise, from the index."},
+    {"input": {"query": "page size", "path_glob": "src/**/*.ts", "max_results": 5, "response_format": "detailed", "source": "live"},
+     "note": "Hard: a two-word phrase matches only lines that contain it exactly; the glob limits the search to TypeScript under src/, and live reads the files themselves. If this returns count 0, that is an answer: search for one word instead."}
+  ],
+  "result_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["query", "query_valid", "path_glob", "source", "count", "shown", "truncated", "index_age", "results"],
+    "properties": {
+      "query": {"type": "string"},
+      "query_valid": {"type": "boolean"},
+      "path_glob": {"type": ["string", "null"]},
+      "source": {"type": "string", "enum": ["index", "live"]},
+      "count": {"type": "integer"},
+      "shown": {"type": "integer"},
+      "truncated": {"type": "boolean"},
+      "index_age": {"type": ["string", "null"]},
+      "by_file": {
+        "type": "array",
+        "items": {"type": "object", "additionalProperties": false, "required": ["path", "count"],
+                  "properties": {"path": {"type": "string"}, "count": {"type": "integer"}}}
+      },
+      "results": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "line", "text"],
+          "properties": {
+            "path": {"type": "string"},
+            "line": {"type": "integer"},
+            "text": {"type": "string"},
+            "before": {"type": "string"},
+            "after": {"type": "string"}
+          }
+        }
+      }
+    }
   }
 }
