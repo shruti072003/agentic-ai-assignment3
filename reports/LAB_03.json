@@ -76,33 +76,33 @@
   },
   "protocol_error_policy": "generic_result",
   "surface": {
-    "tokens_before": null,
-    "tokens_after": null,
-    "list_tokens_before": null,
-    "list_tokens_after": null,
-    "calls_per_run": null,
-    "cost_per_run_before": null,
-    "cost_per_run_after": null,
-    "cost_per_run_all_five": null
+    "tokens_before": 195,
+    "tokens_after": 2551,
+    "list_tokens_before": 106,
+    "list_tokens_after": 1707,
+    "calls_per_run": 7.17,
+    "cost_per_run_before": 0.000205,
+    "cost_per_run_after": 0.002672,
+    "cost_per_run_all_five": 0.007313
   },
   "writes": {
     "harness": {
-      "runs": null,
-      "comments_per_run_max": null,
-      "duplicate_comment_runs": null,
-      "prs_correct_runs": null,
-      "committed_timeouts": null,
-      "escalated": null,
-      "triage_passes": null
+      "runs": 12,
+      "comments_per_run_max": 1,
+      "duplicate_comment_runs": 0,
+      "prs_correct_runs": 12,
+      "committed_timeouts": 10,
+      "escalated": 0,
+      "triage_passes": 3
     },
     "control": {
-      "runs": null,
-      "comments_per_run_max": null,
-      "duplicate_comment_runs": null,
-      "prs_correct_runs": null,
-      "committed_timeouts": null,
-      "escalated": null,
-      "triage_passes": null
+      "runs": 12,
+      "comments_per_run_max": 3,
+      "duplicate_comment_runs": 6,
+      "prs_correct_runs": 12,
+      "committed_timeouts": 18,
+      "escalated": 3,
+      "triage_passes": 1
     }
   }
 }

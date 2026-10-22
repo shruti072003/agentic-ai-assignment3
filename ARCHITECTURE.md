@@ -17,8 +17,7 @@ What each layer is for (Lecture 1, slides 42 to 44):
 - **Observability**: a step-by-step record of what it did.
 - **Evaluation**: measuring quality, before and after release.
 
-The table below is RepoMind as Assignment 3 leaves it. The Tools row now cites the
-boundary check and the key; Control & Policy and Observability changed with it.
+The table below is RepoMind as Assignment 3 leaves it.
 
 | Layer | What does this job | Where it is enforced | Status |
 |---|---|---|---|
